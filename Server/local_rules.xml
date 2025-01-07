@@ -1,0 +1,153 @@
+<!-- Local rules -->
+
+<!-- Modify it at your will. -->
+<!-- Copyright (C) 2015, Wazuh Inc. -->
+
+<!-- Example -->
+
+
+<group name="wazuh">
+<rule id="221" level="0" overwrite="yes">
+<category>ossec</category>
+<decoded_as>syscollector</decoded_as>
+<description>syscollector</description>
+</rule>
+</group>
+<group name="windows,windows_application,">
+  <rule id="60611" level="6" overwrite="yes">
+    <field name="win.system.eventID">^11724$|^1034$</field>
+    <options>no_full_log</options>
+    <description>Application uninstalled $(win.eventdata.data).</description>
+  </rule>
+  
+  <rule id="60612" level="6" overwrite="yes">
+    <field name="win.system.eventID">^11707$|^1033$</field>
+    <options>no_full_log</options>
+    <description>Application installed $(win.eventdata.data).</description>
+  </rule>
+</group>
+<group name="local,syslog,sshd,">
+
+  <!--
+  Dec 10 01:02:02 host sshd[1234]: Failed none for root from 1.1.1.1 port 1066 ssh2
+  -->
+  <rule id="100001" level="5">
+    <if_sid>5716</if_sid>
+    <srcip>1.1.1.1</srcip>
+    <description>sshd: authentication failed from IP 1.1.1.1.</description>
+    <group>authentication_failed,pci_dss_10.2.4,pci_dss_10.2.5,</group>
+  </rule>
+
+</group>
+
+<group name="process_monitor,">
+  <rule id="100010" level="6">
+    <decoded_as>tasklist</decoded_as>
+    <regex type="pcre2">(?i)notepad.exe</regex>
+    <description>Notepad.exe is running.</description>
+  </rule>
+</group>
+
+<group name="sysmon,">
+  <rule id="61603" level="12" overwrite="yes">
+    <field name="win.system.eventID">^1$</field>
+    <description>Sysmon - Event 1: Process creation $(win.eventdata.image) from $(win.eventdata.parentimage) by $(win.eventdata.parentcommandline)</description>
+    <options>no_full_log</options>
+    <group>sysmon_event1,</group>
+     
+  </rule>
+</group>
+
+<group name="my">
+<rule id="100012" level="12">
+<if_sid>61603</if_sid>
+  <list field="win.eventdata.image" lookup="match_key">etc/lists/procs-list</list>
+  <description>My test rule: $(win.eventdata.image)</description>
+</rule>
+<rule id="100013" level="12">
+  <decoded_as>json</decoded_as>
+  <field name="Allow">False</field>
+  <description>App run without allowed time</description>
+</rule>
+</group>
+
+
+<group name="sysmon">
+    <rule id="61650" level="3" overwrite="yes">
+    <if_sid>61600</if_sid>
+    <field name="win.system.eventID">^22$</field>
+    <description>Sysmon - Sự kiện 22: DNS Queried.</description>
+    <group>sysmon_event_22,</group>
+  </rule>
+</group>
+
+<group name="dnsstat,">
+ <rule id="100020" level="5">
+    <field name="integration">dnsstat</field>
+    <description>DNS Stats</description>
+    <options>no_full_log</options>
+    <group>dnsstat_alert,</group>
+  </rule>
+<rule id="100021" level="5">
+    <if_sid>100020</if_sid>
+    <field name="dnsstat.alerts">LOW-FREQ-SCORES|SUSPECT-FREQ-SCORE</field>
+    <description>DNS Stats - Low Frequency Score in Queried Domain</description>
+    <mitre>
+     <id>T1071</id>
+    </mitre>
+    <options>no_full_log</options>
+    <group>dnsstat_alert,</group>
+  </rule>
+
+<rule id="100022" level="5">
+    <if_sid>100020</if_sid>
+    <field name="dnsstat.alerts">YOUR-FIRST-CONTACT</field>
+    <description>DNS Stats - Domain Queried for the first time</description>
+    <mitre>
+     <id>T1071</id>
+    </mitre>
+    <options>no_full_log</options>
+    <group>dnsstat_alert,</group>
+  </rule>
+<rule id="100023" level="5">
+      <if_sid>100020</if_sid>
+      <field name="dnsstat.category">NEW</field>
+      <description>DNS Stats - DNS Query to Recently Created Domain</description>
+      <mitre>
+       <id>T1071</id>
+      </mitre>
+      <options>no_full_log</options>
+      <group>dnsstat_alert,</group>
+    </rule>
+<rule id="100024" level="5">
+    <if_sid>100020</if_sid>
+    <field name="dnsstat.error">\.+</field>
+    <description>DNS Stats - Error connecting to API</description>
+    <options>no_full_log</options>
+    <group>dnsstat_error,</group>
+  </rule>
+  <rule id="100025" level="3">
+  <decoded_as>json</decoded_as>
+  <field name="unlisted">True</field>
+  <description>Detection new query</description>
+  </rule>
+  <rule id="100026" level="12">
+  <decoded_as>json</decoded_as>
+  <field name="first-contact">True</field>
+  <description>First contact domain detection:</description>
+  </rule>
+</group>
+
+<group name="syscollector,">
+  <rule id="100030" level="6">
+      <if_sid>221</if_sid>
+      <field name="type">dbsync_ports</field>
+      <description>Syscollector ports event.</description>
+  </rule>
+    <rule id="100031" level="6">
+      <if_sid>221</if_sid>
+      <field name="type">dbsync_packages</field>
+      <description>Syscollector packages</description>
+  </rule>
+
+</group>

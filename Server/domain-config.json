@@ -1,0 +1,43 @@
+{
+    "domain_rules": {
+      "default_action": "allow",
+      "allow": [
+        {
+          "domain": "support.company.com",
+          "description": "Support system",
+          "schedule": [
+            {
+              "days": ["Monday", "Sunday"],
+              "start_time": "00:00",
+              "end_time": "23:59"
+            }
+          ]
+        }
+      ],
+      "block": [
+        {
+          "domain": "www.facebook.com",
+          "description": "Social media platform",
+          "schedule": [
+            {
+              "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+              "start_time": "09:00",
+              "end_time": "20:00"
+            }
+          ]
+        },
+        {
+          "domain": "qldt.ptit.edu.vn",
+          "description": "Block all other domains",
+          "schedule": [
+            {
+              "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+              "start_time": "00:00",
+              "end_time": "11:00"
+            }
+          ]
+        }
+      ]
+    }
+  }
+  
